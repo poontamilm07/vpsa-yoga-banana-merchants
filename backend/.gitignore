@@ -1,0 +1,25 @@
+# Backend .gitignore
+
+# Environment files & Secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Build output
+target/
+
+# Local H2 Database
+data/
+*.mv.db
+*.trace.db
+
+# IDE settings
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+# Logs
+*.log

@@ -1,0 +1,19 @@
+# Render Blueprint Infrastructure Config for VPSA YOGA BANANA MERCHANTS
+services:
+  - type: web
+    name: vpsa-banana-ledger-api
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    context: ./backend
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: APP_JWT_SECRET
+        generateValue: true

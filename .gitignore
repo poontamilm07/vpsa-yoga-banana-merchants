@@ -1,0 +1,49 @@
+# Root .gitignore for VPSA YOGA BANANA MERCHANTS
+
+# Environment files & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.pfx
+
+# Dependency directories
+node_modules/
+frontend/node_modules/
+
+# Build & Scratch outputs
+dist/
+frontend/dist/
+target/
+backend/target/
+build/
+scratch/
+
+# Local Database Files (H2 Data)
+backend/data/
+*.mv.db
+*.trace.db
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS / System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
