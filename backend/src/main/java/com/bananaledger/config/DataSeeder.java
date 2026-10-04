@@ -18,6 +18,7 @@ import com.bananaledger.service.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -100,7 +101,12 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedUsers() {
-        if (!userRepository.existsByUsername("admin")) {
+        userRepository.findByUsername("admin").ifPresentOrElse(admin -> {
+            if (!StringUtils.hasText(admin.getRole())) {
+                admin.setRole("ROLE_ADMIN");
+                userRepository.save(admin);
+            }
+        }, () -> {
             User admin = new User();
             admin.setUsername("admin");
             admin.setPassword(passwordEncoder.encode("admin123"));
@@ -108,7 +114,7 @@ public class DataSeeder implements CommandLineRunner {
             admin.setRole("ROLE_ADMIN");
             admin.setActive(true);
             userRepository.save(admin);
-        }
+        });
     }
 
     private void seedSettings() {
