@@ -5,6 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +21,8 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
 
@@ -32,20 +36,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                String username = tokenProvider.getUsernameFromToken(jwt);
-                userRepository.findByUsername(username).ifPresent(user -> {
-                    if (user.isActive()) {
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                user.getUsername(), null, Collections.singletonList(new SimpleGrantedAuthority(user.getRole()))
-                        );
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                    }
-                });
+            if (StringUtils.hasText(jwt)) {
+                if (tokenProvider.validateToken(jwt)) {
+                    String username = tokenProvider.getUsernameFromToken(jwt);
+                    userRepository.findByUsername(username).ifPresentOrElse(user -> {
+                        if (user.isActive()) {
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                    user.getUsername(), null, Collections.singletonList(new SimpleGrantedAuthority(user.getRole()))
+                            );
+                            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        } else {
+                            log.warn("Authentication failed: User account is inactive");
+                        }
+                    }, () -> {
+                        log.warn("Authentication failed: User not found in database for provided token");
+                    });
+                } else {
+                    log.warn("Authentication failed: Invalid or expired JWT token");
+                }
             }
         } catch (Exception ex) {
-            // Could not set user authentication in security context
+            log.error("Could not set user authentication in security context: {}", ex.getMessage());
         }
 
         filterChain.doFilter(request, response);
